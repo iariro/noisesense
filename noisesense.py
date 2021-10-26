@@ -30,7 +30,7 @@ def to_db(x, base=1):
 
 # main loop
 def main():
-    cnt = [0] * 3
+    cnt = [0] * 4
     now2 = None
     ambi = ambient.Ambient(11405, "29f2d72e4d415732")
     while True:
@@ -38,17 +38,14 @@ def main():
         if (now2 is not None) and (now.minute // interval != now2.minute // interval):
             try:
                 cnts = {}
-                if cnt[0] > 0:
-                    cnts['d5'] = cnt[0]
-                if cnt[1] > 0:
-                    cnts['d6'] = cnt[1]
-                if cnt[2] > 0:
-                    cnts['d7'] = cnt[2]
+                for i in range(4):
+                    if cnt[i] > 0:
+                        cnts['d{}'.format(5 + i)] = cnt[i]
                 if len(cnts) > 0:
                     ambi.send(cnts)
             except:
                 pass
-            cnt = [0] * 3
+            cnt = [0] * 4
 
         stream = p.open(format = FORMAT,
                         channels = CHANNELS,
@@ -70,12 +67,12 @@ def main():
         db = to_db(rms, 20e-6)
         stream.close()
 
-        if 55 <= db < 60:
-            cnt[0] += 1
-        if 60 <= db < 65:
-            cnt[1] += 1
-        if 65 <= db:
-            cnt[2] += 1
+        # 55-60 / 60-65 / 65-70 / 70-
+        if db >= 55:
+            if db > 70:
+                db = 70
+            cnt[int((db - 55) // 5)] += 1
+
         now2 = now
 
 try:
