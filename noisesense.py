@@ -32,7 +32,7 @@ def to_db(x, base=1):
 def main():
     cnt = [0] * 5
     now2 = None
-    ambi = ambient.Ambient(11405, "29f2d72e4d415732")
+    ambi = ambient.Ambient(43750, "d4af625dc13007b1")
     while True:
         now = datetime.datetime.now()
         if (now2 is not None) and (now.minute // interval != now2.minute // interval):
@@ -40,9 +40,7 @@ def main():
                 cnts = {}
                 for i in range(5):
                     if cnt[i] > 0:
-                        d = 5 + i
-                        if d == 9:
-                            d = 3
+                        d = 2 + i
                         cnts['d{}'.format(d)] = cnt[i]
                 if len(cnts) > 0:
                     ambi.send(cnts)
