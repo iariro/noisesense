@@ -40,7 +40,10 @@ def main():
                 cnts = {}
                 for i in range(5):
                     if cnt[i] > 0:
-                        cnts['d{}'.format(5 + i)] = cnt[i]
+                        d = 5 + i
+                        if d == 9:
+                            d = 3
+                        cnts['d{}'.format(d)] = cnt[i]
                 if len(cnts) > 0:
                     ambi.send(cnts)
             except:
