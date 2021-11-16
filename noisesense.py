@@ -30,7 +30,7 @@ def to_db(x, base=1):
 
 # main loop
 def main():
-    cnt = [0] * 5
+    cnt = [0] * 6
     now2 = None
     ambi = ambient.Ambient(43750, "d4af625dc13007b1")
     while True:
@@ -46,7 +46,7 @@ def main():
                     ambi.send(cnts)
             except:
                 pass
-            cnt = [0] * 5
+            cnt = [0] * 6
 
         stream = p.open(format = FORMAT,
                         channels = CHANNELS,
@@ -70,8 +70,8 @@ def main():
 
         # 55-60 / 60-65 / 65-70 / 70-
         if db >= 55:
-            if db > 75:
-                db = 75
+            if db > 80:
+                db = 80
             cnt[int((db - 55) // 5)] += 1
 
         now2 = now
