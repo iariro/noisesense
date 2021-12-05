@@ -5,6 +5,14 @@ import numpy as np
 import sys
 import datetime
 import ambient
+import requests
+
+def line_notify(cnt):
+    token = "nPQEoC190nfvydJRbQmY75SY00Ygvt0CxsaXWoLTUUH"
+    url = "https://notify-api.line.me/api/notify"
+    headers = {"Authorization": "Bearer " + token}
+    payload = {"message": '80dBを{}回記録しました'.format(cnt)}
+    requests.post(url, headers=headers, data=payload)
 
 # check args
 if (len(sys.argv) < 2) or (not sys.argv[1].isdecimal()):
@@ -44,6 +52,8 @@ def main():
                         cnts['d{}'.format(d)] = cnt[i]
                 if len(cnts) > 0:
                     ambi.send(cnts)
+                if cnts[5] > 0:
+                    line_notify(cnt[5]):
             except:
                 pass
             cnt = [0] * 6
