@@ -53,7 +53,7 @@ def main():
                 if len(cnts) > 0:
                     ambi.send(cnts)
                 if cnts[5] > 0:
-                    line_notify(cnt[5]):
+                    line_notify(cnt[5])
             except:
                 pass
             cnt = [0] * 6
