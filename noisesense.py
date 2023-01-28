@@ -6,6 +6,7 @@ import sys
 import datetime
 import ambient
 import requests
+import wave
 
 def line_notify(cnt):
     token = "nPQEoC190nfvydJRbQmY75SY00Ygvt0CxsaXWoLTUUH"
@@ -30,6 +31,8 @@ FORMAT = pyaudio.paInt16
 CHANNELS = int(p.get_device_info_by_index(INPUT_DEVICE_INDEX)["maxInputChannels"])
 SAMPLING_RATE = int(p.get_device_info_by_index(INPUT_DEVICE_INDEX)["defaultSampleRate"])
 RECORD_SECONDS = 1
+
+WAV_DIR = '/home/pi/public_html/flask/noisesense/static/wav'
 
 # amp to db
 def to_db(x, base=1):
@@ -68,8 +71,17 @@ def main():
 
         # get specified range of data. size of data equals (CHUNK * (SAMPLING_RATE / CHUNK) * RECORD_SECONDS)
         data = np.empty(0)
+
+        wave_write = now.minute == 0
+        wave_write_start = (now2 is not None) and (now.minute != now2.minute) and now.minute == 0
+        wave_write_end = (now2 is not None) and (now.minute != now2.minute) and now.minute == 1
+
+        if wave_write_start:
+            wave_data = []
         for i in range(0, int(SAMPLING_RATE / CHUNK * RECORD_SECONDS)):
             elm = stream.read(CHUNK, exception_on_overflow = False)
+            if wave_write:
+                wave_data.append(elm)
             elm = np.frombuffer(elm, dtype="int16")/float((np.power(2,16)/2)-1)
             data = np.hstack([data, elm])
         # calc RMS
@@ -77,6 +89,14 @@ def main():
         # RMS to db
         db = to_db(rms, 20e-6)
         stream.close()
+
+        if wave_write_end:
+            wavFile = wave.open('{}/{:02}.wav'.format(WAV_DIR, now.hour), 'wb')
+            wavFile.setnchannels(CHANNELS)
+            wavFile.setsampwidth(p.get_sample_size(FORMAT))
+            wavFile.setframerate(SAMPLING_RATE)
+            wavFile.writeframes(b"".join(wave_data)) #Python3用
+            wavFile.close()
 
         # 55-60 / 60-65 / 65-70 / 70-
         if db >= 55:
