@@ -42,6 +42,7 @@ def to_db(x, base=1):
 # main loop
 def main():
     cnt = [0] * 6
+    wave_data = []
     now2 = None
     ambi = ambient.Ambient(43750, "d4af625dc13007b1")
     while True:
@@ -72,16 +73,22 @@ def main():
         # get specified range of data. size of data equals (CHUNK * (SAMPLING_RATE / CHUNK) * RECORD_SECONDS)
         data = np.empty(0)
 
-        wave_write = now.minute == 0
-        wave_write_start = (now2 is not None) and (now.minute != now2.minute) and now.minute == 0
-        wave_write_end = (now2 is not None) and (now.minute != now2.minute) and now.minute == 1
+        wave_write = (now2 is not None) and (now.minute != now2.minute) and now.minute == 0
 
-        if wave_write_start:
+        if wave_write:
+            wavFile = wave.open('{}/{:02}.wav'.format(WAV_DIR, now.hour), 'wb')
+            wavFile.setnchannels(CHANNELS)
+            wavFile.setsampwidth(p.get_sample_size(FORMAT))
+            wavFile.setframerate(SAMPLING_RATE)
+            wavFile.writeframes(b"".join(wave_data)) #Python3用
+            wavFile.close()
+
             wave_data = []
+
+        wave_data_new = []
         for i in range(0, int(SAMPLING_RATE / CHUNK * RECORD_SECONDS)):
             elm = stream.read(CHUNK, exception_on_overflow = False)
-            if wave_write:
-                wave_data.append(elm)
+            wave_data_new.append(elm)
             elm = np.frombuffer(elm, dtype="int16")/float((np.power(2,16)/2)-1)
             data = np.hstack([data, elm])
         # calc RMS
@@ -90,19 +97,12 @@ def main():
         db = to_db(rms, 20e-6)
         stream.close()
 
-        if wave_write_end:
-            wavFile = wave.open('{}/{:02}.wav'.format(WAV_DIR, now.hour), 'wb')
-            wavFile.setnchannels(CHANNELS)
-            wavFile.setsampwidth(p.get_sample_size(FORMAT))
-            wavFile.setframerate(SAMPLING_RATE)
-            wavFile.writeframes(b"".join(wave_data)) #Python3用
-            wavFile.close()
-
         # 55-60 / 60-65 / 65-70 / 70-
         if db >= 55:
             if db > 80:
                 db = 80
             cnt[int((db - 55) // 5)] += 1
+            wave_data += wave_data_new
 
         now2 = now
 
